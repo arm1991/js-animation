@@ -30,13 +30,14 @@ window.PRISM_DEFAULTS = {
   beamSecondary: "#ff801a",
   beamDeep: "#ff420a",
   beamCore: "#ff9e3d",
+  beamSpread: 0.45, // beam height: vertical spread of the fan (1 = default, lower = tighter)
   fringe: 1, // rainbow edges on the beams
-  brightness: 2.6,
+  brightness: 3,
 
   // Beam motion
-  swingSpeed: 2.2, // how fast ribbons swing up/down
-  swingScale: 1.5, // how far they swing
-  curl: 0.32, // how much ribbons arc/curl over their length
+  swingSpeed: 0.8, // how fast ribbons swing up/down
+  swingScale: 2, // how far they swing
+  curl: 0.8, // how much ribbons arc/curl over their length
   flowSpeed: 0.6, // how fast strands and sheen stream outward
 
   // Page

@@ -101,12 +101,15 @@
   const uA = new Float32Array(K * 4); // base angle, swing, swing speed, phase
   const uB = new Float32Array(K * 4); // width, intensity, flow speed, fringe
   const uC = new Float32Array(K * 3); // color
-  RIBBON_DEFS.forEach(([, , , w, i, fl, fr], k) => uB.set([w * DEG, i, fl, fr], k * 4));
-
   function buildRibbons() {
-    RIBBON_DEFS.forEach(([a, sw, sp, , , , , color], k) => {
+    // beamSpread scales the whole fan vertically; widths follow more gently so a narrow
+    // fan stays a bundle of distinct ribbons instead of one blob
+    const spread = settings.beamSpread;
+    const widthScale = Math.sqrt(spread);
+    RIBBON_DEFS.forEach(([a, sw, sp, w, i, fl, fr, color], k) => {
       // golden-angle phases so no two ribbons move in sync
-      uA.set([a * DEG, sw * settings.swingScale * DEG, sp * settings.swingSpeed, k * 2.39996], k * 4);
+      uA.set([a * spread * DEG, sw * settings.swingScale * spread * DEG, sp * settings.swingSpeed, k * 2.39996], k * 4);
+      uB.set([w * widthScale * DEG, i, fl, fr], k * 4);
       uC.set(hexToRgb(settings[BEAM_COLOR[color]]), k * 3);
     });
   }
@@ -125,6 +128,7 @@
     uniform float uFlow;    // flow time: streaming strands (speeds up while dragging)
     uniform float uBend;    // extra curvature from rhombus motion (trailing)
     uniform float uCurl;    // base curvature amplitude
+    uniform float uSpread;  // vertical spread of the whole fan (1 = default)
     uniform vec4 uRhombus;  // rhombus center (buffer px, GL coords), half-width, half-height (px)
     uniform float uSpin;    // rhombus rotation about its vertical axis (radians)
     uniform float uGemP;    // outline exponent: 1 = straight sides, lower = sides curve in
@@ -268,7 +272,7 @@
       float t = uTime;
 
       // the whole fan breathes up and down
-      float sway = 0.08 * sin(t * 0.45) + 0.04 * sin(t * 1.1 + 1.3);
+      float sway = (0.08 * sin(t * 0.45) + 0.04 * sin(t * 1.1 + 1.3)) * uSpread;
 
       vec3 col = vec3(0.0);
       for (int i = 0; i < K; i++) {
@@ -280,7 +284,7 @@
                   + a.y * sin(t * a.z + a.w)
                   + 0.35 * a.y * sin(t * a.z * 2.3 + a.w * 2.0);
         // curvature grows with distance -> ribbons arc like the reference
-        float bend = uBend + uCurl * sin(t * a.z * 0.6 + a.w * 1.7);
+        float bend = uBend + uCurl * uSpread * sin(t * a.z * 0.6 + a.w * 1.7);
         float w = b.x * (1.0 + 0.3 * sin(t * a.z * 1.7 + a.w * 3.0));
         float x = (th - ang - bend * r) / w;
         float core = exp(-x * x);
@@ -321,7 +325,7 @@
       }
 
       // whisper of warm haze inside the cone
-      float haze = exp(-pow((th - 0.05 - sway) / 0.6, 2.0));
+      float haze = exp(-pow((th - 0.05 * uSpread - sway) / (0.6 * uSpread), 2.0));
       col += vec3(1.0, 0.28, 0.03) * 0.03 * haze;
 
       // only in front of the source, fading with distance
@@ -388,11 +392,10 @@
     for (const name of [
       'uOrigin', 'uScale', 'uTime', 'uFlow', 'uBend', 'uCurl', 'uA', 'uB', 'uC', 'uRhombus', 'uSpin',
       'uGemP', 'uCurve', 'uGemFlow', 'uGemBody', 'uGemHi', 'uGemDeep', 'uGemShadow', 'uGemSpread',
-      'uFringe', 'uExposure', 'uBg',
+      'uFringe', 'uExposure', 'uBg', 'uSpread',
     ]) {
       loc[name] = gl.getUniformLocation(program, name);
     }
-    gl.uniform4fv(loc.uB, uB);
     uploadSettings();
   }
 
@@ -400,7 +403,9 @@
   function uploadSettings() {
     buildRibbons();
     gl.uniform4fv(loc.uA, uA);
+    gl.uniform4fv(loc.uB, uB);
     gl.uniform3fv(loc.uC, uC);
+    gl.uniform1f(loc.uSpread, settings.beamSpread);
     gl.uniform1f(loc.uCurl, settings.curl);
     gl.uniform1f(loc.uGemP, 1 - 0.6 * settings.gemPinch);
     gl.uniform1f(loc.uCurve, settings.gemCurve);
@@ -430,7 +435,7 @@
   let particles = [];
   function spawnParticle(p, r) {
     const def = RIBBON_DEFS[(Math.random() * K) | 0];
-    p.a = (def[0] + (Math.random() - 0.5) * def[3] * 2) * DEG;
+    p.a = (def[0] + (Math.random() - 0.5) * def[3] * 2) * settings.beamSpread * DEG;
     p.r = r;
     p.speed = 20 + Math.random() * 70;
     p.size = 0.6 + Math.random() * 1.1;

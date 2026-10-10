@@ -47,6 +47,7 @@
         { key: 'beamSecondary', label: 'Secondary', type: 'color' },
         { key: 'beamDeep', label: 'Deep', type: 'color' },
         { key: 'beamCore', label: 'Core', type: 'color' },
+        { key: 'beamSpread', label: 'Beam height', min: 0.2, max: 1.6, step: 0.05, format: pct },
         { key: 'fringe', label: 'Rainbow edges', min: 0, max: 1.5, step: 0.05, format: pct },
         { key: 'brightness', label: 'Brightness', min: 1, max: 4.5, step: 0.05, format: num },
       ],
