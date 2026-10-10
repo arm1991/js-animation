@@ -1,0 +1,401 @@
+:root {
+  color-scheme: dark;
+  --bg: #000;
+  --fg: #f6f2ec;
+  --muted: rgba(246, 242, 236, 0.64);
+  --accent: #ff8a2a;
+  --gutter: clamp(16px, 6vw, 96px);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Hero ---------- */
+
+.hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--bg);
+}
+
+.hero__gl,
+.hero__fx {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hero__fx {
+  /* vertical page scroll still works on touch; the rhombus blocks it via JS */
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* No WebGL: show the original artwork instead */
+.hero--static {
+  background: #000 url("photo_2026-10-10_19-53-41.jpg") 70% 50% / cover no-repeat;
+}
+
+.hero--static .hero__gl,
+.hero--static .hero__fx {
+  display: none;
+}
+
+.hero.is-dragging,
+.hero.is-dragging .hero__fx {
+  cursor: grabbing;
+  user-select: none;
+}
+
+.hero__content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  width: min(40vw, 560px);
+  padding: 0 0 0 var(--gutter);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  /* let the canvas underneath receive drags; re-enabled on links */
+  pointer-events: none;
+}
+
+.hero__content a {
+  pointer-events: auto;
+}
+
+.hero__eyebrow {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.hero__title {
+  font-size: clamp(2.25rem, 4.4vw, 4.5rem);
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.hero__lead {
+  max-width: 30ch;
+  font-size: clamp(1rem, 1.25vw, 1.1875rem);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  height: 46px;
+  padding: 0 22px;
+  border-radius: 999px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn--primary {
+  background: var(--fg);
+  color: #0b0b0b;
+}
+
+.btn--primary:hover {
+  background: #fff;
+}
+
+.btn--ghost {
+  color: var(--fg);
+  border: 1px solid rgba(246, 242, 236, 0.28);
+}
+
+.btn--ghost:hover {
+  border-color: rgba(246, 242, 236, 0.6);
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Narrow screens: rhombus moves up-left (see hero.js), copy sits at the bottom */
+@media (max-width: 899px) {
+  .hero__content {
+    width: 100%;
+    padding: 0 var(--gutter) 48px;
+    justify-content: flex-end;
+    gap: 16px;
+  }
+
+  .hero__content::before {
+    content: "";
+    position: absolute;
+    inset: 40% 0 0;
+    z-index: -1;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 35%, rgba(0, 0, 0, 0));
+  }
+}
+
+/* ---------- Editor (toggle + panel, see editor.js) ---------- */
+
+.editor-toggle {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid rgba(246, 242, 236, 0.16);
+  border-radius: 12px;
+  background: rgba(20, 16, 13, 0.6);
+  color: var(--fg);
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.editor-toggle:hover,
+.editor-toggle.is-active {
+  border-color: rgba(255, 138, 42, 0.6);
+  color: var(--accent);
+}
+
+.editor-toggle:focus-visible,
+.editor button:focus-visible,
+.editor summary:focus-visible,
+.editor input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.editor {
+  position: absolute;
+  top: 72px;
+  left: 20px;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  width: min(320px, calc(100% - 40px));
+  max-height: calc(100% - 92px);
+  border: 1px solid rgba(246, 242, 236, 0.1);
+  border-radius: 16px;
+  background: rgba(16, 13, 11, 0.86);
+  color: var(--fg);
+  font-size: 13px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 0.18s, transform 0.18s, visibility 0s 0.18s;
+}
+
+.editor.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition: opacity 0.18s, transform 0.18s;
+}
+
+.editor__header,
+.editor__footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.editor__header {
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(246, 242, 236, 0.08);
+}
+
+.editor__header h2 {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.editor__close {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.editor__close:hover {
+  background: rgba(246, 242, 236, 0.08);
+  color: var(--fg);
+}
+
+.editor__body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 4px 14px;
+}
+
+.editor__section {
+  border-bottom: 1px solid rgba(246, 242, 236, 0.06);
+}
+
+.editor__section:last-child {
+  border-bottom: 0;
+}
+
+.editor__section summary {
+  padding: 10px 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  cursor: pointer;
+  list-style: none;
+}
+
+.editor__section summary::-webkit-details-marker {
+  display: none;
+}
+
+.editor__section summary::after {
+  content: "+";
+  float: right;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.editor__section[open] summary::after {
+  content: "–";
+}
+
+.editor__controls {
+  display: grid;
+  gap: 12px;
+  padding: 2px 0 14px;
+}
+
+.editor__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 6px;
+}
+
+.editor__row label {
+  color: rgba(246, 242, 236, 0.86);
+}
+
+.editor__value {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+
+.editor__row--range input {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.editor__row--color {
+  grid-template-columns: 1fr auto auto;
+}
+
+.editor__swatch {
+  width: 30px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid rgba(246, 242, 236, 0.2);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.editor__swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.editor__swatch::-webkit-color-swatch {
+  border: 0;
+  border-radius: 5px;
+}
+
+.editor__swatch::-moz-color-swatch {
+  border: 0;
+  border-radius: 5px;
+}
+
+.editor__footer {
+  border-top: 1px solid rgba(246, 242, 236, 0.08);
+}
+
+.editor__btn {
+  flex: 1;
+  height: 34px;
+  border: 1px solid rgba(246, 242, 236, 0.18);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--fg);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.editor__btn:hover {
+  border-color: rgba(246, 242, 236, 0.4);
+}
+
+.editor__btn--primary {
+  border-color: transparent;
+  background: var(--fg);
+  color: #0b0b0b;
+}
+
+.editor__btn--primary:hover {
+  background: #fff;
+}
