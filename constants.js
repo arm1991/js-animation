@@ -7,17 +7,19 @@
  *
  * Colors are hex strings; everything else is a number.
  */
-window.PRISM_DEFAULTS = {
+window.Prism = window.Prism || {};
+
+Prism.defaults = {
   // Rhombus shape & size
   gemSize: 1.15, // × the default height
   gemWidth: 0.74, // width relative to height
   gemPinch: 0.9, // how far the sides curve in (0 = straight-sided diamond)
 
   // Rhombus colors
-  gemBody: "#ff6b0f",
-  gemHighlight: "#ffdbad",
-  gemDeep: "#ff470a",
-  gemShadow: "#2e0901",
+  gemBody: '#ff6b0f',
+  gemHighlight: '#ffdbad',
+  gemDeep: '#ff470a',
+  gemShadow: '#2e0901',
   gemSpread: 1, // strength of the warm red -> yellow spread
 
   // Rhombus motion
@@ -26,11 +28,11 @@ window.PRISM_DEFAULTS = {
   gemCurve: 0.5, // how much the bands arc (0 = straight)
 
   // Light beams
-  beamMain: "#ff6b0f",
-  beamSecondary: "#ff801a",
-  beamDeep: "#ff420a",
-  beamCore: "#ff9e3d",
-  beamSpread: 0.45, // beam height: vertical spread of the fan (1 = default, lower = tighter)
+  beamMain: '#ff6b0f',
+  beamSecondary: '#ff801a',
+  beamDeep: '#ff420a',
+  beamCore: '#ff9e3d',
+  beamSpread: 0.45, // beam height: vertical spread of the fan (1 = the ribbons' designed angles, lower = tighter)
   fringe: 1, // rainbow edges on the beams
   brightness: 3,
 
@@ -41,5 +43,5 @@ window.PRISM_DEFAULTS = {
   flowSpeed: 0.6, // how fast strands and sheen stream outward
 
   // Page
-  background: "#040303",
+  background: '#040303',
 };

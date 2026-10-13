@@ -1,71 +1,37 @@
 /*
  * Hero editor — a small panel (toggle in the top-left corner) for live-tuning the
- * prism hero: colors, rhombus shape and size, and motion. Talks to window.prismHero
+ * prism hero: colors, rhombus shape and size, and motion. Talks to Prism.hero
  * (defined in hero.js); changes apply instantly and are remembered in this browser.
+ *
+ * It's a design tool, so visitors don't see it: open the page with ?edit to turn it on
+ * (remembered in this browser) and ?edit=0 to turn it off again.
  */
 (() => {
-  const hero = window.prismHero;
+  const EDITOR_KEY = 'prism-editor';
+
+  function editorEnabled() {
+    const param = new URLSearchParams(window.location.search).get('edit');
+    try {
+      if (param === null) return localStorage.getItem(EDITOR_KEY) === '1';
+      if (param === '0') localStorage.removeItem(EDITOR_KEY);
+      else localStorage.setItem(EDITOR_KEY, '1');
+    } catch {
+      // storage unavailable: the URL parameter still works for this visit
+    }
+    return param !== null && param !== '0';
+  }
+
+  const Prism = window.Prism || {};
+  const hero = Prism.hero;
   const section = document.querySelector('.hero');
   if (!hero || !section) return; // static fallback: nothing to edit
+  if (!editorEnabled()) return;
 
-  const pct = (v) => `${Math.round(v * 100)}%`;
-  const num = (v) => v.toFixed(2);
-
-  const SECTIONS = [
-    {
-      title: 'Rhombus shape',
-      open: true,
-      controls: [
-        { key: 'gemSize', label: 'Size', min: 0.5, max: 2, step: 0.05, format: pct },
-        { key: 'gemWidth', label: 'Width', min: 0.4, max: 1.2, step: 0.01, format: pct },
-        { key: 'gemPinch', label: 'Side curve', min: 0, max: 0.9, step: 0.01, format: pct },
-      ],
-    },
-    {
-      title: 'Rhombus colors',
-      open: true,
-      controls: [
-        { key: 'gemBody', label: 'Body', type: 'color' },
-        { key: 'gemHighlight', label: 'Highlight', type: 'color' },
-        { key: 'gemDeep', label: 'Deep band', type: 'color' },
-        { key: 'gemShadow', label: 'Shadow', type: 'color' },
-        { key: 'gemSpread', label: 'Warm spread', min: 0, max: 1.5, step: 0.05, format: pct },
-      ],
-    },
-    {
-      title: 'Rhombus motion',
-      controls: [
-        { key: 'spinSpeed', label: 'Spin speed', min: 0, max: 3, step: 0.05, format: num },
-        { key: 'gemFlow', label: 'Gradient flow', min: 0, max: 1.5, step: 0.05, format: num },
-        { key: 'gemCurve', label: 'Band curve', min: 0, max: 1.2, step: 0.05, format: num },
-      ],
-    },
-    {
-      title: 'Light beams',
-      controls: [
-        { key: 'beamMain', label: 'Main', type: 'color' },
-        { key: 'beamSecondary', label: 'Secondary', type: 'color' },
-        { key: 'beamDeep', label: 'Deep', type: 'color' },
-        { key: 'beamCore', label: 'Core', type: 'color' },
-        { key: 'beamSpread', label: 'Beam height', min: 0.2, max: 1.6, step: 0.05, format: pct },
-        { key: 'fringe', label: 'Rainbow edges', min: 0, max: 1.5, step: 0.05, format: pct },
-        { key: 'brightness', label: 'Brightness', min: 1, max: 4.5, step: 0.05, format: num },
-      ],
-    },
-    {
-      title: 'Beam motion',
-      controls: [
-        { key: 'swingSpeed', label: 'Swing speed', min: 0, max: 5, step: 0.05, format: num },
-        { key: 'swingScale', label: 'Swing amount', min: 0, max: 3, step: 0.05, format: num },
-        { key: 'curl', label: 'Curl', min: 0, max: 0.8, step: 0.01, format: num },
-        { key: 'flowSpeed', label: 'Stream speed', min: 0, max: 2, step: 0.05, format: num },
-      ],
-    },
-    {
-      title: 'Background',
-      controls: [{ key: 'background', label: 'Color', type: 'color' }],
-    },
-  ];
+  const FORMATS = {
+    pct: (v) => `${Math.round(v * 100)}%`,
+    num: (v) => v.toFixed(2),
+  };
+  const SECTIONS = Prism.controls || [];
 
   const el = (tag, props = {}, children = []) => {
     const node = Object.assign(document.createElement(tag), props);
@@ -100,18 +66,18 @@
   const closeBtn = el('button', { type: 'button', className: 'editor__close', innerHTML: '&times;' });
   closeBtn.setAttribute('aria-label', 'Close');
 
-  const inputs = new Map(); // key -> { input, sync() }
+  const inputs = new Map(); // key -> { sync(values) }
 
   function rangeRow(c) {
     const id = `editor-${c.key}`;
     const out = el('output', { className: 'editor__value', htmlFor: id });
     const input = el('input', { type: 'range', id, min: c.min, max: c.max, step: c.step });
-    const sync = () => {
-      input.value = hero.get()[c.key];
-      out.textContent = c.format(Number(input.value));
+    const sync = (values) => {
+      input.value = values[c.key];
+      out.textContent = FORMATS[c.format](Number(input.value));
     };
     input.addEventListener('input', () => {
-      out.textContent = c.format(Number(input.value));
+      out.textContent = FORMATS[c.format](Number(input.value));
       hero.set({ [c.key]: Number(input.value) });
     });
     inputs.set(c.key, { sync });
@@ -126,8 +92,8 @@
     const id = `editor-${c.key}`;
     const hex = el('span', { className: 'editor__value' });
     const input = el('input', { type: 'color', id, className: 'editor__swatch' });
-    const sync = () => {
-      input.value = hero.get()[c.key];
+    const sync = (values) => {
+      input.value = values[c.key];
       hex.textContent = input.value.toUpperCase();
     };
     input.addEventListener('input', () => {
@@ -171,7 +137,10 @@
   );
   section.append(toggle, panel);
 
-  const syncAll = () => inputs.forEach(({ sync }) => sync());
+  const syncAll = () => {
+    const values = hero.get();
+    inputs.forEach(({ sync }) => sync(values));
+  };
   syncAll();
 
   // ---------------------------------------------------------------------------

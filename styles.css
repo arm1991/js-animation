@@ -1,9 +1,14 @@
 :root {
   color-scheme: dark;
   --bg: #000;
-  --fg: #f6f2ec;
-  --muted: rgba(246, 242, 236, 0.64);
-  --accent: #ff8a2a;
+  --fg-rgb: 246 242 236; /* for translucent text and borders: rgb(var(--fg-rgb) / 0.2) */
+  --fg: rgb(var(--fg-rgb));
+  --fg-hover: #fff;
+  --on-fg: #0b0b0b; /* text on light (--fg) buttons */
+  --muted: rgb(var(--fg-rgb) / 0.64);
+  --accent-rgb: 255 138 42;
+  --accent: rgb(var(--accent-rgb));
+  --panel-bg: rgb(16 13 11 / 0.86);
   --gutter: clamp(16px, 6vw, 96px);
 }
 
@@ -18,7 +23,15 @@ html,
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -49,9 +62,21 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* No WebGL: show the original artwork instead */
+/* No WebGL: a CSS-only stand-in for the artwork — a glowing source with a warm fan of light */
 .hero--static {
-  background: #000 url("photo_2026-10-10_19-53-41.jpg") 70% 50% / cover no-repeat;
+  background:
+    radial-gradient(circle at 48% 45%, #fff3e0 0, #ffb060 0.6%, rgba(255, 107, 15, 0.35) 4%, transparent 14%),
+    conic-gradient(
+      from 55deg at 48% 45%,
+      transparent 0deg,
+      rgba(255, 66, 10, 0.25) 6deg,
+      rgba(255, 128, 26, 0.45) 18deg,
+      rgba(255, 158, 61, 0.55) 35deg,
+      rgba(255, 128, 26, 0.45) 52deg,
+      rgba(140, 90, 255, 0.25) 64deg,
+      transparent 70deg
+    ),
+    var(--bg);
 }
 
 .hero--static .hero__gl,
@@ -121,7 +146,10 @@ body {
   font-size: 0.9375rem;
   font-weight: 600;
   text-decoration: none;
-  transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    transform 0.2s;
 }
 
 .btn:active {
@@ -130,20 +158,20 @@ body {
 
 .btn--primary {
   background: var(--fg);
-  color: #0b0b0b;
+  color: var(--on-fg);
 }
 
 .btn--primary:hover {
-  background: #fff;
+  background: var(--fg-hover);
 }
 
 .btn--ghost {
   color: var(--fg);
-  border: 1px solid rgba(246, 242, 236, 0.28);
+  border: 1px solid rgb(var(--fg-rgb) / 0.28);
 }
 
 .btn--ghost:hover {
-  border-color: rgba(246, 242, 236, 0.6);
+  border-color: rgb(var(--fg-rgb) / 0.6);
 }
 
 .btn:focus-visible {
@@ -181,19 +209,22 @@ body {
   width: 40px;
   height: 40px;
   padding: 0;
-  border: 1px solid rgba(246, 242, 236, 0.16);
+  border: 1px solid rgb(var(--fg-rgb) / 0.16);
   border-radius: 12px;
   background: rgba(20, 16, 13, 0.6);
   color: var(--fg);
   cursor: pointer;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .editor-toggle:hover,
 .editor-toggle.is-active {
-  border-color: rgba(255, 138, 42, 0.6);
+  border-color: rgb(var(--accent-rgb) / 0.6);
   color: var(--accent);
 }
 
@@ -214,9 +245,9 @@ body {
   flex-direction: column;
   width: min(320px, calc(100% - 40px));
   max-height: calc(100% - 92px);
-  border: 1px solid rgba(246, 242, 236, 0.1);
+  border: 1px solid rgb(var(--fg-rgb) / 0.1);
   border-radius: 16px;
-  background: rgba(16, 13, 11, 0.86);
+  background: var(--panel-bg);
   color: var(--fg);
   font-size: 13px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
@@ -225,14 +256,19 @@ body {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-6px);
-  transition: opacity 0.18s, transform 0.18s, visibility 0s 0.18s;
+  transition:
+    opacity 0.18s,
+    transform 0.18s,
+    visibility 0s 0.18s;
 }
 
 .editor.is-open {
   opacity: 1;
   visibility: visible;
   transform: none;
-  transition: opacity 0.18s, transform 0.18s;
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
 }
 
 .editor__header,
@@ -245,7 +281,7 @@ body {
 
 .editor__header {
   justify-content: space-between;
-  border-bottom: 1px solid rgba(246, 242, 236, 0.08);
+  border-bottom: 1px solid rgb(var(--fg-rgb) / 0.08);
 }
 
 .editor__header h2 {
@@ -266,7 +302,7 @@ body {
 }
 
 .editor__close:hover {
-  background: rgba(246, 242, 236, 0.08);
+  background: rgb(var(--fg-rgb) / 0.08);
   color: var(--fg);
 }
 
@@ -278,7 +314,7 @@ body {
 }
 
 .editor__section {
-  border-bottom: 1px solid rgba(246, 242, 236, 0.06);
+  border-bottom: 1px solid rgb(var(--fg-rgb) / 0.06);
 }
 
 .editor__section:last-child {
@@ -326,7 +362,7 @@ body {
 }
 
 .editor__row label {
-  color: rgba(246, 242, 236, 0.86);
+  color: rgb(var(--fg-rgb) / 0.86);
 }
 
 .editor__value {
@@ -350,7 +386,7 @@ body {
   width: 30px;
   height: 22px;
   padding: 0;
-  border: 1px solid rgba(246, 242, 236, 0.2);
+  border: 1px solid rgb(var(--fg-rgb) / 0.2);
   border-radius: 6px;
   background: none;
   cursor: pointer;
@@ -371,13 +407,13 @@ body {
 }
 
 .editor__footer {
-  border-top: 1px solid rgba(246, 242, 236, 0.08);
+  border-top: 1px solid rgb(var(--fg-rgb) / 0.08);
 }
 
 .editor__btn {
   flex: 1;
   height: 34px;
-  border: 1px solid rgba(246, 242, 236, 0.18);
+  border: 1px solid rgb(var(--fg-rgb) / 0.18);
   border-radius: 10px;
   background: transparent;
   color: var(--fg);
@@ -387,15 +423,15 @@ body {
 }
 
 .editor__btn:hover {
-  border-color: rgba(246, 242, 236, 0.4);
+  border-color: rgb(var(--fg-rgb) / 0.4);
 }
 
 .editor__btn--primary {
   border-color: transparent;
   background: var(--fg);
-  color: #0b0b0b;
+  color: var(--on-fg);
 }
 
 .editor__btn--primary:hover {
-  background: #fff;
+  background: var(--fg-hover);
 }
